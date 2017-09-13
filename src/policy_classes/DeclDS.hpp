@@ -19,26 +19,31 @@
  */
 #ifndef INCLUDED_DECL_DS_HPP
 #define INCLUDED_DECL_DS_HPP
-
+struct SignatureData;
 struct DeclData{
     DeclData(): linenumber{0}, isConstValue{false}, isConstAlias{false}, isAliasToConst{false}, isReference{false}, 
-                isPointer{false}, isStatic{false}, isClassMember{false}, usesSubscript{false}{}
+                isPointer{false}, isStatic{false}, isClassMember{false}, usesSubscript{false}, hasSideEffect{false}{}
     void clear(){
         linenumber = -1;
         isStatic = false;
         isPointer = false;
         nameOfType.clear();
         namespaces.clear();
+        isLocalVar = false;
         isReference = false;
+        isParameter = false;
         isConstValue = false;
         isConstAlias = false;
         isClassMember = false;
         usesSubscript = false;
+        hasSideEffect = false;
         sLexicalCategory.clear();
         nameOfIdentifier.clear();
+        nameOfContainingFile.clear();
+        nameOfContainingClass.clear();
     }
     int linenumber;
-    
+
     bool isConstValue;
     bool isStatic;
     bool isPointer;
@@ -46,13 +51,18 @@ struct DeclData{
     bool isConstAlias;
     bool isClassMember;
     bool usesSubscript;
+    bool hasSideEffect;
     bool isAliasToConst;
-    
+    bool isParameter;
+    bool isLocalVar;
+
     std::string nameOfType;
     std::string sLexicalCategory;
     std::string nameOfIdentifier;
     std::string nameOfContainingFile;
-    std::string nameOfContainingFunction;
+    std::string nameOfContainingClass;
+
+    SignatureData* sigdata;
 
     std::vector<std::string> namespaces;
 };

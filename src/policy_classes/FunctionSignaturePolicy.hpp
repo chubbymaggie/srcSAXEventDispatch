@@ -24,43 +24,47 @@
 #include <DeclDS.hpp>
 #ifndef FUNCTIONSIGNATUREPOLICY
 #define FUNCTIONSIGNATUREPOLICY
+struct SignatureData{
+    SignatureData():isConst{false}, constPointerReturn{false}, isMethod{false}, isStatic{false}, pointerToConstReturn{false}, 
+    hasAliasedReturn{false}, hasSideEffect{false}{}
+    int linenumber;
+    bool isConst;
+    bool isMethod;
+    bool isStatic;
+    std::string name;
+    bool hasSideEffect;
+    bool hasAliasedReturn;
+    std::string returnType;
+    bool constPointerReturn;
+    bool pointerToConstReturn;
+    std::string sLexicalCategory;
+    std::string returnTypeModifier;
+    std::vector<DeclData> parameters;
+    std::string nameOfContainingFile;
+    std::string nameOfContainingClass;
+    std::vector<std::string> functionNamespaces;
+    std::vector<std::string> returnTypeNamespaces;
+    void clear(){
+        name.clear();
+        isConst = false;
+        isMethod = false;
+        isStatic = false;
+        returnType.clear();
+        parameters.clear();
+        hasSideEffect = false;
+        sLexicalCategory.clear();
+        hasAliasedReturn = false;
+        functionNamespaces.clear();
+        returnTypeModifier.clear();
+        constPointerReturn = false;
+        nameOfContainingFile.clear();
+        returnTypeNamespaces.clear();
+        pointerToConstReturn = false;
+        nameOfContainingClass.clear();
+    }
+};
 class FunctionSignaturePolicy : public srcSAXEventDispatch::EventListener, public srcSAXEventDispatch::PolicyDispatcher, public srcSAXEventDispatch::PolicyListener{
     public:
-        struct SignatureData{
-            SignatureData():isConst{false}, constPointerReturn{false}, isMethod{false}, isStatic{false}, pointerToConstReturn{false}, 
-            hasAliasedReturn{false}{}
-            int linenumber;
-            bool isConst;
-            bool isMethod;
-            bool isStatic;
-            std::string name;
-            bool hasAliasedReturn;
-            std::string returnType;
-            bool constPointerReturn;
-            bool pointerToConstReturn;
-            std::string returnTypeModifier;
-            std::string sLexicalCategory;
-            std::string nameOfContainingFile;
-            std::vector<DeclData> parameters;
-            std::string NameOfContainingFunction;
-            std::vector<std::string> functionNamespaces;
-            std::vector<std::string> returnTypeNamespaces;
-            void clear(){
-                name.clear();
-                isConst = false;
-                isMethod = false;
-                isStatic = false;
-                returnType.clear();
-                parameters.clear();
-                sLexicalCategory.clear();
-                hasAliasedReturn = false;
-                functionNamespaces.clear();
-                returnTypeModifier.clear();
-                constPointerReturn = false;
-                returnTypeNamespaces.clear();
-                pointerToConstReturn = false;
-            }
-        };
         ~FunctionSignaturePolicy(){}
         FunctionSignaturePolicy(std::initializer_list<srcSAXEventDispatch::PolicyListener *> listeners = {}) : srcSAXEventDispatch::PolicyDispatcher(listeners){
             currentArgPosition = 1;
@@ -100,7 +104,9 @@ class FunctionSignaturePolicy : public srcSAXEventDispatch::EventListener, publi
             openEventMap[ParserState::functionblock] = [this](srcSAXEventContext& ctx){//incomplete. Blocks count too.
                 if(ctx.IsOpen(ParserState::classn)){
                     data.isMethod = true;
+                    data.nameOfContainingClass = ctx.currentClassName;
                 }
+                data.name = ctx.currentFunctionName;
                 NotifyAll(ctx);
                 seenModifier = false;
                 data.clear();
@@ -115,9 +121,6 @@ class FunctionSignaturePolicy : public srcSAXEventDispatch::EventListener, publi
                 else if(currentModifier == "&") {}
             };
             closeEventMap[ParserState::tokenstring] = [this](srcSAXEventContext& ctx){
-                if(ctx.And({ParserState::name, ParserState::function}) && ctx.Nor({ParserState::functionblock, ParserState::type, ParserState::parameterlist, ParserState::genericargumentlist})){
-                    data.name = ctx.currentToken;
-                }
                 if(ctx.And({ParserState::name, ParserState::type, ParserState::function}) && ctx.Nor({ParserState::functionblock, ParserState::parameterlist, ParserState::genericargumentlist})){
                     data.returnType = ctx.currentToken;
                 }

@@ -426,6 +426,10 @@ namespace srcSAXEventDispatch {
                     ++ctx.triggerField[ParserState::unit];
                     DispatchEvent(ParserState::unit, ElementState::open);
                 } },
+                { "return", [this](){
+                    ++ctx.triggerField[ParserState::returnstmt];
+                    DispatchEvent(ParserState::returnstmt, ElementState::open);
+                } },
             };
             process_map2 = {
                 {"decl_stmt", [this](){
@@ -476,6 +480,7 @@ namespace srcSAXEventDispatch {
                 } },            
                 { "function", [this](){
                     DispatchEvent(ParserState::functionblock, ElementState::close);
+                    ctx.currentFunctionName.clear();
                     --ctx.triggerField[ParserState::functionblock];
 
                     DispatchEvent(ParserState::function, ElementState::close);
@@ -510,10 +515,13 @@ namespace srcSAXEventDispatch {
                 { "class", [this](){
                     --ctx.triggerField[ParserState::classblock];
                     DispatchEvent(ParserState::classn, ElementState::close);
+                    ctx.currentClassName.clear();
                     --ctx.triggerField[ParserState::classn];
                 } },
                 { "struct", [this](){
+                    --ctx.triggerField[ParserState::classblock];
                     DispatchEvent(ParserState::structn, ElementState::close);
+                    ctx.currentClassName.clear();
                     --ctx.triggerField[ParserState::classn];
                 } },
                 { "super_list", [this](){
@@ -636,6 +644,10 @@ namespace srcSAXEventDispatch {
                         DispatchEvent(ParserState::archive, ElementState::close);
                     }
                 } },
+                { "return", [this](){
+                    --ctx.triggerField[ParserState::returnstmt];
+                    DispatchEvent(ParserState::returnstmt, ElementState::close);
+                } },
                 { "xmlattribute", [this](){
                     ctx.triggerField[ParserState::xmlattribute] = 1;
                     DispatchEvent(ParserState::xmlattribute, ElementState::close);
@@ -710,7 +722,7 @@ namespace srcSAXEventDispatch {
             }
 
             if(num_attributes >= 3){
-                ctx.currentFilePath = std::string(attributes[2].value);
+                ctx.currentFilePath = std::string(attributes[2].value); 
                 ctx.currentFileLanguage = std::string(attributes[1].value);
                 ctx.currentsrcMLRevision = std::string(attributes[0].value);
             }
@@ -809,6 +821,14 @@ namespace srcSAXEventDispatch {
             ctx.currentToken.clear();
             ctx.currentToken.append(ch, len);
             std::unordered_map<std::string, std::function<void()>>::const_iterator process = process_map2.find("tokenstring");
+            
+            if(ctx.Or({ParserState::classn, ParserState::structn}) && ctx.IsOpen(ParserState::name) && ctx.IsClosed(ParserState::classblock)){
+                ctx.currentClassName = ctx.currentToken;
+            }
+            
+            if(ctx.And({ParserState::name, ParserState::function}) && ctx.Nor({ParserState::functionblock, ParserState::type, ParserState::parameterlist, ParserState::genericargumentlist})){
+                ctx.currentFunctionName = ctx.currentToken;
+            }
             process->second();
             if (generateArchive) { ctx.write_content(ctx.currentToken); }
         }

@@ -36,7 +36,7 @@ class TestFunctionSignature : public srcSAXEventDispatch::PolicyDispatcher, publ
         ~TestFunctionSignature(){}
         TestFunctionSignature(std::initializer_list<srcSAXEventDispatch::PolicyListener *> listeners = {}) : srcSAXEventDispatch::PolicyDispatcher(listeners){}
         void Notify(const PolicyDispatcher * policy, const srcSAXEventDispatch::srcSAXEventContext & ctx) override {
-            signaturedata = *policy->Data<FunctionSignaturePolicy::SignatureData>();
+            signaturedata = *policy->Data<SignatureData>();
             datatotest.push_back(signaturedata);
         }
         void RunTest(){
@@ -97,6 +97,7 @@ class TestFunctionSignature : public srcSAXEventDispatch::PolicyDispatcher, publ
             assert(datatotest[3].pointerToConstReturn == false);
             assert(datatotest[3].constPointerReturn == false);
             assert(datatotest[3].hasAliasedReturn == false);
+            assert(datatotest[3].nameOfContainingClass == "testclass");
 
             assert(datatotest[4].returnType == "object");
             assert(datatotest[4].name== "bloo");
@@ -118,15 +119,15 @@ class TestFunctionSignature : public srcSAXEventDispatch::PolicyDispatcher, publ
             return (void*)0; //To silence the warning
         }
     private:
-        FunctionSignaturePolicy::SignatureData signaturedata;
-        std::vector<FunctionSignaturePolicy::SignatureData> datatotest;
+        SignatureData signaturedata;
+        std::vector<SignatureData> datatotest;
 };
 
 int main(int argc, char** filename){
     std::string codestr = "void foo(int abc, Object<int> onetwothree, Object* DoReiMe, const Object* aybeecee){}\n"
                           "static void bar(int abc, Object<int> onetwothree, Object* DoReiMe, const Object* aybeecee){}\n"
                           "int* bloo(int abc, Object<int> onetwothree, Object* DoReiMe, const Object* aybeecee){}\n"
-                          "class{void bleep(int abc, Object<int> onetwothree, Object* DoReiMe, const Object* aybeecee)const{}};\n"
+                          "class testclass{void bleep(int abc, Object<int> onetwothree, Object* DoReiMe, const Object* aybeecee)const{}};\n"
                           "static const GameDes::std::object* const std::bloo(Object<int> onetwothree, Object* DoReiMe, const Object* aybeecee){}";
     std::string srcmlstr = StringToSrcML(codestr);
 

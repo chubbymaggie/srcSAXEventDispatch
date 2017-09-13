@@ -40,7 +40,7 @@ namespace srcSAXEventDispatch{
         argument, index, block, type, typeprev, init, op, literal, modifier, memberlist, classn, structn,
         super_list, super, publicaccess, privateaccess, protectedaccess, preproc, whilestmt, forstmt, 
         ifstmt, nonterminal, macro, classblock, functionblock, ifblock, whileblock, forblock, specifier, typedefexpr,
-        userdefined, snoun, propersnoun, spronoun, sadjective, sverb, stereotype, archive, unit,
+        userdefined, snoun, propersnoun, spronoun, sadjective, sverb, stereotype, archive, unit, returnstmt,
 
         // do not put anything after these
         xmlattribute, tokenstring, empty, MAXENUMVALUE = empty};
@@ -74,7 +74,8 @@ namespace srcSAXEventDispatch{
             unsigned int currentLineNumber;
             std::vector<unsigned short int> triggerField;
             std::string currentFilePath, currentFileName, currentFileLanguage, currentsrcMLRevision,
-                        currentTag, currentToken, currentAttributeName, currentAttributeValue;
+                        currentTag, currentToken, currentAttributeName, currentAttributeValue, currentFunctionName,
+                        currentClassName;
             std::size_t depth;
             bool isPrev, isOperator, endArchive;
 
@@ -320,6 +321,7 @@ namespace srcSAXEventDispatch{
                     ParserState::sadjective,
                     ParserState::spronoun,
                     ParserState::sverb,
+                    ParserState::returnstmt,
                     ParserState::stereotype,
                     ParserState::archive,
                 });
@@ -369,6 +371,7 @@ namespace srcSAXEventDispatch{
                     ParserState::spronoun,
                     ParserState::sverb,
                     ParserState::stereotype,
+                    ParserState::returnstmt,
                     ParserState::archive,
                 });
 
